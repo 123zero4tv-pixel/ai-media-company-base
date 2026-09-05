@@ -1,0 +1,22 @@
+{
+  "company": {
+    "company_id": "media-company-001",
+    "name": "AI Media Company",
+    "status": "ACTIVE",
+    "owner_id": "owner-001",
+    "active_task_ids": [],
+    "pending_approval_ids": []
+  },
+  "agents": {},
+  "tasks": [],
+  "handoffs": [],
+  "content": [],
+  "research_records": [],
+  "sources": [],
+  "evidence": [],
+  "decisions": [],
+  "approvals": [],
+  "knowledge": [],
+  "metrics": [],
+  "audit_log": []
+}
