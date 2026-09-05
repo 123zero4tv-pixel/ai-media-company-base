@@ -100,7 +100,15 @@ The sources used and their relevance.
 
 ### Confidence
 
-High / Medium / Low.
+Use the company-wide five-level confidence standard:
+
+- Very High
+- High
+- Medium
+- Low
+- Very Low
+
+Confidence represents confidence in the conclusion, not confidence in the existence of a source.
 
 ### Conflicts
 
