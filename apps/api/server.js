@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { loadState, setTaskStatus, createHandoff, TRANSITIONS } = require('../../company-core/task-engine');
 const { advanceTask, PIPELINE } = require('../../company-core/workflow-engine');
-const { runAgent, getAgentContract } = require('../../company-core/agent-runtime');
+const { runAgent, completeAgentTask, getAgentContract } = require('../../company-core/agent-runtime');
 
 const PORT = Number(process.env.PORT || 8787);
 const ROOT = path.resolve(__dirname, '../..');
@@ -24,6 +24,7 @@ if(req.method==='GET'&&url.pathname==='/api/handoffs'){try{return sendJson(res,2
 if(req.method==='GET'&&url.pathname==='/api/workflow')return sendJson(res,200,{pipeline:PIPELINE});
 if(req.method==='GET'&&url.pathname.startsWith('/api/agents/')){try{const agentId=url.pathname.split('/')[3];const state=loadState();const contract=getAgentContract(agentId);return sendJson(res,200,{...contract,state:state.agents?.[agentId]||null,tasks:(state.tasks||[]).filter(t=>t.owner_agent_id===agentId)});}catch(error){return sendJson(res,404,{ok:false,error:error.message});}}
 if(req.method==='POST'&&url.pathname.startsWith('/api/tasks/')&&url.pathname.endsWith('/execute')){try{const taskId=url.pathname.split('/')[3];const body=await readBody(req);const state=loadState();const task=state.tasks?.find(t=>t.task_id===taskId);if(!task)return sendJson(res,404,{ok:false,error:'Unknown task'});const result=runAgent(task.owner_agent_id,taskId,body.input||{});return sendJson(res,200,{ok:true,...result});}catch(error){return sendJson(res,400,{ok:false,error:error.message});}}
+if(req.method==='POST'&&url.pathname.startsWith('/api/tasks/')&&url.pathname.endsWith('/complete')){try{const taskId=url.pathname.split('/')[3];const body=await readBody(req);const result=completeAgentTask(taskId,body);return sendJson(res,200,{ok:true,...result});}catch(error){return sendJson(res,400,{ok:false,error:error.message});}}
 if(req.method==='POST'&&url.pathname.startsWith('/api/tasks/')&&url.pathname.endsWith('/status')){try{const taskId=url.pathname.split('/')[3];const body=await readBody(req);if(!body.status)return sendJson(res,400,{ok:false,error:'status is required'});const result=setTaskStatus(taskId,body.status,{error:body.error});return sendJson(res,200,{ok:true,task:result.task,state:result.state});}catch(error){return sendJson(res,400,{ok:false,error:error.message});}}
 if(req.method==='POST'&&url.pathname.startsWith('/api/tasks/')&&url.pathname.endsWith('/advance')){try{const taskId=url.pathname.split('/')[3];const result=advanceTask(taskId,await readBody(req));return sendJson(res,200,{ok:true,...result});}catch(error){return sendJson(res,400,{ok:false,error:error.message});}}
 if(req.method==='POST'&&url.pathname==='/api/handoffs'){try{const result=createHandoff(await readBody(req));return sendJson(res,201,{ok:true,handoff:result.handoff,state:result.state});}catch(error){return sendJson(res,400,{ok:false,error:error.message});}}
