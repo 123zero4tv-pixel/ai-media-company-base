@@ -66,6 +66,20 @@ For important decisions, distinguish clearly between:
 - CONFIDENCE
 - RECOMMENDATION
 
+### Company Confidence Standard
+
+All AI employees use the same five-level confidence scale:
+
+- **Very High** — Strong, direct, current, and well-corroborated evidence with little meaningful uncertainty.
+- **High** — Reliable evidence supports the conclusion, with only limited uncertainty or limitations.
+- **Medium** — Useful evidence supports the conclusion, but meaningful limitations, incomplete corroboration, or uncertainty remain.
+- **Low** — Evidence is weak, incomplete, conflicting, outdated, or difficult to verify.
+- **Very Low** — Evidence is highly uncertain, poorly supported, or largely dependent on unverified information.
+
+Confidence describes confidence in the conclusion, not confidence that a source exists.
+
+Confidence must be justified by evidence quality, source reliability, consistency, corroboration, recency, and remaining uncertainty.
+
 Never present an assumption as a verified fact.
 
 When evidence conflicts, record the conflict and request investigation when necessary.
