@@ -31,7 +31,7 @@
   "evidence": [],
   "decisions": [],
   "approvals": [
-    {"approval_id":"approval-001","decision_id":"decision-001","required_from":"OWNER","status":"PENDING","comment":null,"created_at":"2026-09-06T00:00:00Z","resolved_at":null}
+    {"approval_id":"approval-001","task_id":"task-ceo-001","decision_id":"decision-001","required_from":"OWNER","status":"PENDING","comment":null,"created_at":"2026-09-06T00:00:00Z","resolved_at":null}
   ],
   "knowledge": [],
   "metrics": [],
