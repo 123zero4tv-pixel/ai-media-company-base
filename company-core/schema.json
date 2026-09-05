@@ -1,0 +1,95 @@
+{
+  "version": "1.0.0",
+  "company_state": {
+    "company_id": "string",
+    "name": "string",
+    "status": "ACTIVE|PAUSED|MAINTENANCE",
+    "owner_id": "string",
+    "active_task_ids": ["string"],
+    "pending_approval_ids": ["string"]
+  },
+  "agent_state": {
+    "agent_id": "string",
+    "status": "IDLE|READY|WORKING|BLOCKED|WAITING_APPROVAL|ERROR|OFFLINE",
+    "current_task_id": "string|null",
+    "last_completed_task_id": "string|null",
+    "last_error": "string|null",
+    "updated_at": "datetime"
+  },
+  "task": {
+    "task_id": "string",
+    "type": "string",
+    "title": "string",
+    "objective": "string",
+    "owner_agent_id": "string",
+    "requester_agent_id": "string|null",
+    "priority": "LOW|NORMAL|HIGH|URGENT",
+    "status": "QUEUED|ASSIGNED|IN_PROGRESS|BLOCKED|WAITING_APPROVAL|READY_FOR_QA|COMPLETED|FAILED|CANCELLED",
+    "input_refs": ["string"],
+    "output_refs": ["string"],
+    "depends_on": ["string"],
+    "retry_count": "integer",
+    "max_retries": "integer",
+    "last_error": "string|null",
+    "created_at": "datetime",
+    "started_at": "datetime|null",
+    "completed_at": "datetime|null"
+  },
+  "handoff": {
+    "handoff_id": "string",
+    "task_id": "string",
+    "from_agent": "string",
+    "to_agent": "string",
+    "objective": "string",
+    "input_refs": ["string"],
+    "evidence_refs": ["string"],
+    "source_refs": ["string"],
+    "assumptions": ["string"],
+    "inference": ["string"],
+    "confidence": "Very High|High|Medium|Low|Very Low",
+    "recommendation": "string|null",
+    "requested_action": "string",
+    "status": "PENDING|ACCEPTED|REJECTED|COMPLETED"
+  },
+  "evidence": {
+    "evidence_id": "string",
+    "classification": "FACT|SOURCE|EVIDENCE|INFERENCE|ASSUMPTION|OPINION|CONFIDENCE|RECOMMENDATION",
+    "claim_or_statement": "string",
+    "source_refs": ["string"],
+    "evidence_type": "SUPPORTING|CONTRADICTING|QUALIFYING",
+    "retrieved_at": "datetime|null",
+    "reliability": "Very High|High|Medium|Low|Very Low",
+    "confidence": "Very High|High|Medium|Low|Very Low",
+    "notes": "string|null"
+  },
+  "decision": {
+    "decision_id": "string",
+    "subject": "string",
+    "recommendation_refs": ["string"],
+    "decision": "APPROVE|REJECT|DEFER|REQUEST_REVISION",
+    "decided_by": "string",
+    "approval_id": "string|null",
+    "reason": "string",
+    "created_at": "datetime"
+  },
+  "approval": {
+    "approval_id": "string",
+    "decision_id": "string",
+    "required_from": "OWNER|CEO|QA",
+    "status": "PENDING|APPROVED|REJECTED",
+    "comment": "string|null",
+    "created_at": "datetime",
+    "resolved_at": "datetime|null"
+  },
+  "audit_log": {
+    "event_id": "string",
+    "timestamp": "datetime",
+    "actor_type": "OWNER|AGENT|SYSTEM",
+    "actor_id": "string",
+    "event_type": "TASK_CREATED|TASK_ASSIGNED|TASK_STARTED|TASK_BLOCKED|TASK_COMPLETED|TASK_FAILED|HANDOFF_CREATED|DECISION_CREATED|APPROVAL_REQUESTED|APPROVAL_RESOLVED|CONTENT_UPDATED|QA_REJECTED|QA_APPROVED|PUBLISHED|METRIC_RECORDED|ERROR",
+    "entity_type": "string",
+    "entity_id": "string",
+    "summary": "string",
+    "metadata": {}
+  }
+}
