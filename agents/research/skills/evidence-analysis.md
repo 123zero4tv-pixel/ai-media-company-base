@@ -6,16 +6,18 @@ Analyze evidence and determine how strongly it supports a claim.
 
 The goal is to prevent unsupported conclusions and make uncertainty visible.
 
-## Evidence Classification
+## Company Taxonomy
 
-Classify information as:
+Use the company-wide information taxonomy defined in `docs/07-information-taxonomy.md`.
+
+Classify information as appropriate:
 
 - FACT
-- EVIDENCE
 - SOURCE
+- EVIDENCE
+- INFERENCE
 - ASSUMPTION
 - OPINION
-- INFERENCE
 - CONFIDENCE
 - RECOMMENDATION
 
@@ -54,11 +56,13 @@ Evidence is indirect, limited, outdated, disputed, or based on unreliable source
 
 There is not enough evidence to reasonably support the claim.
 
+Evidence Strength describes the supporting evidence. Confidence describes confidence in the resulting conclusion. They are related but not interchangeable.
+
 ## Confidence
 
 Confidence represents confidence in the conclusion, not confidence in the existence of a source.
 
-Use:
+Use the company-wide five-level standard:
 
 - Very High
 - High
@@ -150,6 +154,8 @@ The best-supported interpretation of the evidence.
 
 What the company should consider doing based on the evidence.
 
+A recommendation remains a recommendation until the authorized decision-maker approves it.
+
 ## Output Format
 
 Use this structure for important research findings:
@@ -183,3 +189,33 @@ CONCLUSION:
 
 RECOMMENDATION:
 [action or next step]
+```
+
+## Important Rules
+
+- Evidence must be traceable to a source.
+- A source does not automatically prove a claim.
+- Multiple sources repeating the same information are not necessarily independent corroboration.
+- Do not manufacture evidence.
+- Do not hide uncertainty.
+- Do not increase confidence simply because many sources agree if they originate from the same underlying source.
+- When evidence is insufficient, say so.
+- When evidence conflicts, show the conflict.
+- Separate facts from interpretation.
+- Separate evidence from recommendation.
+- Preserve information classifications when handing work to another agent.
+
+## Final Check
+
+Before delivering a research conclusion, verify:
+
+1. Is the claim clearly defined?
+2. Is each important piece of evidence traceable?
+3. Does the evidence actually support the claim?
+4. Are the sources reliable for this specific claim?
+5. Is contradictory evidence disclosed?
+6. Are important gaps identified?
+7. Is confidence justified?
+8. Is the conclusion separated from inference?
+9. Is the recommendation based on the evidence?
+10. Could another agent audit how the conclusion was reached?
