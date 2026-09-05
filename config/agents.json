@@ -1,14 +1,75 @@
 {
+  "version": 1,
   "agents": [
-    {"id":"ceo","name":"CEO AI","department":"executive"},
-    {"id":"research","name":"Research AI","department":"research"},
-    {"id":"idea","name":"Idea AI","department":"creative"},
-    {"id":"writer","name":"Writer AI","department":"writing"},
-    {"id":"producer","name":"Producer AI","department":"production"},
-    {"id":"visual","name":"Visual AI","department":"design"},
-    {"id":"video","name":"Video AI","department":"video"},
-    {"id":"qa","name":"QA AI","department":"quality"},
-    {"id":"publisher","name":"Publisher AI","department":"publishing"},
-    {"id":"analytics","name":"Analytics AI","department":"analytics"}
+    {
+      "id": "ceo",
+      "name": "CEO AI",
+      "department": "executive",
+      "role_path": "agents/ceo",
+      "authority": ["strategy", "priority", "approval"]
+    },
+    {
+      "id": "research",
+      "name": "Research AI",
+      "department": "research",
+      "role_path": "agents/research",
+      "authority": ["research", "evidence", "source_evaluation"]
+    },
+    {
+      "id": "idea",
+      "name": "Idea AI",
+      "department": "creative",
+      "role_path": "agents/idea",
+      "authority": ["ideation", "idea_scoring", "idea_handoff"]
+    },
+    {
+      "id": "writer",
+      "name": "Writer AI",
+      "department": "writing",
+      "role_path": "agents/writer",
+      "authority": ["script", "copy", "platform_adaptation"]
+    },
+    {
+      "id": "producer",
+      "name": "Producer AI",
+      "department": "production",
+      "role_path": "agents/producer",
+      "authority": ["production_plan", "coordination"]
+    },
+    {
+      "id": "visual",
+      "name": "Visual AI",
+      "department": "design",
+      "role_path": "agents/visual",
+      "authority": ["visual_assets", "thumbnail", "graphics"]
+    },
+    {
+      "id": "video",
+      "name": "Video AI",
+      "department": "video",
+      "role_path": "agents/video",
+      "authority": ["video_assembly", "subtitles", "formatting"]
+    },
+    {
+      "id": "qa",
+      "name": "QA AI",
+      "department": "quality",
+      "role_path": "agents/qa",
+      "authority": ["quality_gate", "rejection", "revision_request"]
+    },
+    {
+      "id": "publisher",
+      "name": "Publisher AI",
+      "department": "publishing",
+      "role_path": "agents/publisher",
+      "authority": ["metadata", "scheduling", "publishing_status"]
+    },
+    {
+      "id": "analytics",
+      "name": "Analytics AI",
+      "department": "analytics",
+      "role_path": "agents/analytics",
+      "authority": ["metrics", "performance_analysis", "learning_feedback"]
+    }
   ]
 }
