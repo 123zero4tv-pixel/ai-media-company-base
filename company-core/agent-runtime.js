@@ -42,15 +42,14 @@ function completeAgentTask(taskId, options={}){
   task.runtime.execution_result={type:'structured_role_output',output};
   saveState(state);
 
-  const completionStatus=options.ready_for_qa ? 'READY_FOR_QA' : 'COMPLETED';
-  const completed=setTaskStatus(taskId,completionStatus);
-  const currentTask=completed.task;
-
-  if(currentTask.owner_agent_id==='ceo' && !options.approved){
+  if(task.owner_agent_id==='ceo' && !options.approved){
     const waiting=setTaskStatus(taskId,'WAITING_APPROVAL');
     return {task:waiting.task,state:waiting.state,nextTask:null,workflow_advanced:false,approval_required:true};
   }
 
+  const completionStatus=options.ready_for_qa ? 'READY_FOR_QA' : 'COMPLETED';
+  const completed=setTaskStatus(taskId,completionStatus);
+  const currentTask=completed.task;
   const advanced=advanceTask(taskId,{
     evidence_refs:options.evidence_refs || output.evidence_refs || [],
     source_refs:options.source_refs || output.source_refs || [],
@@ -59,7 +58,7 @@ function completeAgentTask(taskId, options={}){
     confidence:options.confidence || output.confidence || 'Medium',
     recommendation:options.recommendation || output.recommendation || null
   });
-  return {...advanced,workflow_advanced:Boolean(advanced.nextTask),approval_required:false};
+  return {...advanced,workflow_advanced:Boolean(advanced.nextTask),approval_required:false,currentTask};
 }
 function getAgentContract(agentId){if(!ROLE_INSTRUCTIONS[agentId])throw new Error(`Unknown agent: ${agentId}`);return {agent_id:agentId,role_instruction:ROLE_INSTRUCTIONS[agentId]};}
 module.exports={runAgent,completeAgentTask,getAgentContract,ROLE_INSTRUCTIONS};
