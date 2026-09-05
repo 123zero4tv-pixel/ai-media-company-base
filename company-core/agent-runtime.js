@@ -31,20 +31,21 @@ function runAgent(agentId,taskId,input={}){
   state.audit_log=state.audit_log||[]; state.audit_log.push({audit_id:`audit-${Date.now()}`,event_type:'AGENT_RUNTIME_OUTPUT_CREATED',actor:agentId,entity_type:'Task',entity_id:taskId,created_at:started,details:{role:agentId,execution_mode:'structured_role_output'}});
   saveState(state); return {agent_id:agentId,task_id:taskId,status:task.status,role_instruction:ROLE_INSTRUCTIONS[agentId],output};
 }
-function ensureCeoApproval(task, output){
+function ensureOwnerApproval(task, output){
   const state=loadState();
   state.approvals=state.approvals||[];
-  let approval=state.approvals.find(a=>a.task_id===task.task_id&&a.status==='PENDING');
-  if(!approval){
-    approval={approval_id:`approval-${Date.now()}`,task_id:task.task_id,decision_id:task.decision_id||null,required_from:'OWNER',status:'PENDING',comment:null,created_at:now(),resolved_at:null};
-    state.approvals.push(approval);
-    state.company=state.company||{};
-    state.company.pending_approval_ids=(state.approvals||[]).filter(a=>a.status==='PENDING').map(a=>a.approval_id);
-    state.audit_log=state.audit_log||[];
-    state.audit_log.push({audit_id:`audit-${Date.now()}-approval`,event_type:'APPROVAL_REQUESTED',actor:'ceo',entity_type:'Approval',entity_id:approval.approval_id,created_at:now(),details:{task_id:task.task_id,confidence:output.confidence||'Medium'}});
-    saveState(state);
-  }
-  return approval;
+  const existing=state.approvals.find(a=>a.task_id===task.task_id&&a.status==='PENDING');
+  if(existing){return {state,approval:existing};}
+  const approvalId=`approval-${Date.now()}-${state.approvals.length+1}`;
+  const decisionId=`decision-${Date.now()}-${state.decisions?.length+1||1}`;
+  const approval={approval_id:approvalId,decision_id:decisionId,task_id:task.task_id,required_from:'OWNER',status:'PENDING',comment:null,created_at:now(),resolved_at:null};
+  state.approvals.push(approval);
+  state.decisions=state.decisions||[];
+  state.decisions.push({decision_id:decisionId,task_id:task.task_id,agent_id:'ceo',decision:output.decision||null,recommendation:output.recommendation||null,rationale:output.rationale||null,confidence:output.confidence||'Medium',status:'PENDING_APPROVAL',created_at:now()});
+  state.company.pending_approval_ids=(state.approvals||[]).filter(a=>a.status==='PENDING').map(a=>a.approval_id);
+  state.audit_log=state.audit_log||[];
+  state.audit_log.push({event_id:`event-${Date.now()}-${state.audit_log.length+1}`,timestamp:now(),actor_type:'SYSTEM',actor_id:'agent-runtime',event_type:'APPROVAL_REQUESTED',entity_type:'Approval',entity_id:approvalId,summary:`Owner approval requested for ${task.task_id}`,metadata:{task_id:task.task_id,decision_id:decisionId}});
+  saveState(state); return {state,approval};
 }
 function completeAgentTask(taskId, options={}){
   const state=loadState(); const task=state.tasks?.find(t=>t.task_id===taskId);
@@ -59,7 +60,7 @@ function completeAgentTask(taskId, options={}){
 
   if(task.owner_agent_id==='ceo' && !options.approved){
     const waiting=setTaskStatus(taskId,'WAITING_APPROVAL');
-    const approval=ensureCeoApproval(waiting.task,output);
+    const approval=ensureOwnerApproval(task,output).approval;
     return {task:waiting.task,state:loadState(),nextTask:null,workflow_advanced:false,approval_required:true,approval};
   }
 
