@@ -2,6 +2,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const { loadState, setTaskStatus, createHandoff, TRANSITIONS } = require('../../company-core/task-engine');
+const { advanceTask, PIPELINE } = require('../../company-core/workflow-engine');
 
 const PORT = Number(process.env.PORT || 8787);
 const ROOT = path.resolve(__dirname, '../..');
@@ -47,8 +48,13 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/api/company-state') { try { return sendJson(res, 200, readState()); } catch (error) { return sendJson(res, 500, {ok:false,error:error.message}); } }
   if (req.method === 'GET' && url.pathname === '/api/tasks') { try { const state=loadState(); return sendJson(res,200,{tasks:state.tasks,transitions:TRANSITIONS}); } catch(error) { return sendJson(res,500,{ok:false,error:error.message}); } }
   if (req.method === 'GET' && url.pathname === '/api/handoffs') { try { return sendJson(res,200,{handoffs:loadState().handoffs||[]}); } catch(error) { return sendJson(res,500,{ok:false,error:error.message}); } }
+  if (req.method === 'GET' && url.pathname === '/api/workflow') return sendJson(res,200,{pipeline:PIPELINE});
   if (req.method === 'POST' && url.pathname.startsWith('/api/tasks/') && url.pathname.endsWith('/status')) {
     try { const taskId=url.pathname.split('/')[3]; const body=await readBody(req); if(!body.status) return sendJson(res,400,{ok:false,error:'status is required'}); const result=setTaskStatus(taskId,body.status,{error:body.error}); return sendJson(res,200,{ok:true,task:result.task,state:result.state}); }
+    catch(error) { return sendJson(res,400,{ok:false,error:error.message}); }
+  }
+  if (req.method === 'POST' && url.pathname.startsWith('/api/tasks/') && url.pathname.endsWith('/advance')) {
+    try { const taskId=url.pathname.split('/')[3]; const result=advanceTask(taskId,await readBody(req)); return sendJson(res,200,{ok:true,...result}); }
     catch(error) { return sendJson(res,400,{ok:false,error:error.message}); }
   }
   if (req.method === 'POST' && url.pathname === '/api/handoffs') {
