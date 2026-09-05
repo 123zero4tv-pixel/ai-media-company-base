@@ -3,28 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Media Company — Control Room</title>
+  <title>AI Media Company — Pixel Office</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div><div class="eyebrow">AI MEDIA COMPANY</div><h1>Company Control Room</h1></div>
-    <div class="system"><span class="dot"></span> SYSTEM ACTIVE <span id="clock"></span></div>
-  </header>
-  <main>
-    <section class="hero">
-      <div><span class="badge">V1 PREVIEW</span><h2>บริษัทกำลังทำงาน</h2><p>ศูนย์ควบคุมสำหรับ Owner เพื่อตรวจสถานะ AI employees, งาน, approval และ content pipeline</p></div>
-      <button id="newTask">+ New Task</button>
-    </section>
-    <section class="stats" id="stats"></section>
-    <section class="grid">
-      <div class="panel wide"><div class="panel-head"><h3>AI Employees</h3><span>10 registered</span></div><div id="agents" class="agents"></div></div>
-      <div class="panel"><div class="panel-head"><h3>Task Queue</h3><span id="taskCount"></span></div><div id="tasks"></div></div>
-      <div class="panel"><div class="panel-head"><h3>Content Pipeline</h3><span>V1</span></div><div class="pipeline" id="pipeline"></div></div>
-      <div class="panel wide"><div class="panel-head"><h3>Company Activity</h3><span>Audit stream</span></div><div id="activity"></div></div>
-    </section>
-  </main>
-  <dialog id="taskDialog"><form method="dialog"><h3>Create Task</h3><label>Title<input id="taskTitle" placeholder="เช่น Research AI trends" /></label><label>Owner<select id="taskOwner"></select></label><label>Priority<select id="taskPriority"><option>NORMAL</option><option>HIGH</option><option>URGENT</option><option>LOW</option></select></label><div class="actions"><button value="cancel">Cancel</button><button id="createTask" value="default">Create</button></div></form></dialog>
+  <div class="app-shell">
+    <header class="hud">
+      <div class="brand"><div class="brand-mark">◆</div><div><div class="eyebrow">AI MEDIA COMPANY</div><h1>PIXEL OFFICE</h1></div></div>
+      <div class="hud-center"><span class="live-dot"></span> COMPANY ONLINE <span id="clock"></span></div>
+      <div class="hud-actions"><button class="hud-btn" id="tasksBtn">TASKS <b id="taskBadge">3</b></button><button class="hud-btn" id="approvalBtn">⚠ APPROVAL <b>1</b></button></div>
+    </header>
+
+    <main class="office-wrap">
+      <div class="office-stage" id="officeStage">
+        <div class="office-title"><span>DAY 01</span><strong>COMPANY FLOOR</strong></div>
+        <div class="iso-floor"></div>
+        <div class="rooms" id="rooms"></div>
+        <div class="office-footer"><span>CLICK AN AI EMPLOYEE TO INSPECT</span><span>DRAG / SCROLL TO EXPLORE</span></div>
+      </div>
+
+      <aside class="side-panel" id="sidePanel">
+        <div class="panel-top"><span class="panel-label">COMPANY CORE</span><button id="closePanel">×</button></div>
+        <div id="panelContent"></div>
+      </aside>
+    </main>
+
+    <nav class="bottom-hud">
+      <button class="nav-btn active" data-view="office">🏢 <span>OFFICE</span></button>
+      <button class="nav-btn" data-view="tasks">📋 <span>TASKS</span></button>
+      <button class="nav-btn" data-view="pipeline">🔄 <span>PIPELINE</span></button>
+      <button class="nav-btn" data-view="activity">◉ <span>ACTIVITY</span></button>
+    </nav>
+  </div>
   <script src="app.js"></script>
 </body>
 </html>
