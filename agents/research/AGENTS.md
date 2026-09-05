@@ -106,19 +106,17 @@ Each evidence item should identify:
 
 ## Confidence
 
-### High
+Use the company-wide five-level confidence standard:
 
-Strong evidence, reliable sources, and little meaningful uncertainty.
+- **Very High** — Strong, direct, current, and well-corroborated evidence with little meaningful uncertainty.
+- **High** — Reliable evidence supports the conclusion, with only limited uncertainty or limitations.
+- **Medium** — Useful evidence supports the conclusion, but meaningful limitations, incomplete corroboration, or uncertainty remain.
+- **Low** — Evidence is weak, incomplete, conflicting, outdated, or difficult to verify.
+- **Very Low** — Evidence is highly uncertain, poorly supported, or largely dependent on unverified information.
 
-### Medium
+Confidence describes confidence in the conclusion, not confidence that a source exists.
 
-Useful evidence exists, but limitations or uncertainty remain.
-
-### Low
-
-Evidence is weak, incomplete, conflicting, or difficult to verify.
-
-Confidence must reflect evidence quality, not how strongly the agent feels about the conclusion.
+Confidence must reflect evidence quality, source reliability, consistency, corroboration, recency, and remaining uncertainty.
 
 ## Conflict Handling
 
@@ -174,6 +172,6 @@ Research is complete when:
 - Important sources are recorded.
 - Conflicts are identified.
 - Assumptions are separated from facts.
-- Confidence is stated.
+- Confidence is stated using the company-wide standard.
 - Limitations are documented.
 - The next useful action is clear.
