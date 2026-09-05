@@ -1,0 +1,42 @@
+{
+  "company": {
+    "company_id": "media-company-001",
+    "name": "AI Media Company",
+    "status": "ACTIVE",
+    "owner_id": "owner-001",
+    "active_task_ids": ["task-research-001", "task-idea-001", "task-ceo-001"],
+    "pending_approval_ids": ["approval-001"]
+  },
+  "agents": {
+    "ceo": {"agent_id":"ceo","status":"WAITING_APPROVAL","current_task_id":"task-ceo-001","last_completed_task_id":null,"last_error":null,"updated_at":"2026-09-06T00:00:00Z"},
+    "research": {"agent_id":"research","status":"WORKING","current_task_id":"task-research-001","last_completed_task_id":null,"last_error":null,"updated_at":"2026-09-06T00:00:00Z"},
+    "idea": {"agent_id":"idea","status":"READY","current_task_id":"task-idea-001","last_completed_task_id":null,"last_error":null,"updated_at":"2026-09-06T00:00:00Z"},
+    "writer": {"agent_id":"writer","status":"IDLE","current_task_id":null,"last_completed_task_id":null,"last_error":null,"updated_at":"2026-09-06T00:00:00Z"},
+    "producer": {"agent_id":"producer","status":"IDLE","current_task_id":null,"last_completed_task_id":null,"last_error":null,"updated_at":"2026-09-06T00:00:00Z"},
+    "visual": {"agent_id":"visual","status":"IDLE","current_task_id":null,"last_completed_task_id":null,"last_error":null,"updated_at":"2026-09-06T00:00:00Z"},
+    "video": {"agent_id":"video","status":"IDLE","current_task_id":null,"last_completed_task_id":null,"last_error":null,"updated_at":"2026-09-06T00:00:00Z"},
+    "qa": {"agent_id":"qa","status":"READY","current_task_id":null,"last_completed_task_id":null,"last_error":null,"updated_at":"2026-09-06T00:00:00Z"},
+    "publisher": {"agent_id":"publisher","status":"IDLE","current_task_id":null,"last_completed_task_id":null,"last_error":null,"updated_at":"2026-09-06T00:00:00Z"},
+    "analytics": {"agent_id":"analytics","status":"IDLE","current_task_id":null,"last_completed_task_id":null,"last_error":null,"updated_at":"2026-09-06T00:00:00Z"}
+  },
+  "tasks": [
+    {"task_id":"task-research-001","type":"research","title":"ตรวจ trend รอบล่าสุด","objective":"รวบรวม trend และหลักฐานที่เกี่ยวข้องกับ content opportunity","owner_agent_id":"research","requester_agent_id":"ceo","priority":"HIGH","status":"IN_PROGRESS","input_refs":[],"output_refs":[],"depends_on":[],"retry_count":0,"max_retries":3,"last_error":null,"created_at":"2026-09-06T00:00:00Z","started_at":"2026-09-06T00:00:00Z","completed_at":null},
+    {"task_id":"task-idea-001","type":"idea_scoring","title":"จัดอันดับ content ideas","objective":"จัดอันดับแนวคิดจากผลวิจัยตามศักยภาพและความเหมาะสม","owner_agent_id":"idea","requester_agent_id":"ceo","priority":"NORMAL","status":"QUEUED","input_refs":["task-research-001"],"output_refs":[],"depends_on":["task-research-001"],"retry_count":0,"max_retries":3,"last_error":null,"created_at":"2026-09-06T00:00:00Z","started_at":null,"completed_at":null},
+    {"task_id":"task-ceo-001","type":"decision","title":"รอ CEO decision","objective":"ตัดสินใจทิศทาง content หลังได้รับ recommendation","owner_agent_id":"ceo","requester_agent_id":null,"priority":"URGENT","status":"WAITING_APPROVAL","input_refs":["task-idea-001"],"output_refs":[],"depends_on":["task-idea-001"],"retry_count":0,"max_retries":1,"last_error":null,"created_at":"2026-09-06T00:00:00Z","started_at":null,"completed_at":null}
+  ],
+  "handoffs": [],
+  "content": [],
+  "research_records": [],
+  "sources": [],
+  "evidence": [],
+  "decisions": [],
+  "approvals": [
+    {"approval_id":"approval-001","decision_id":"decision-001","required_from":"OWNER","status":"PENDING","comment":null,"created_at":"2026-09-06T00:00:00Z","resolved_at":null}
+  ],
+  "knowledge": [],
+  "metrics": [],
+  "audit_log": [
+    {"event_id":"event-001","timestamp":"2026-09-06T00:00:00Z","actor_type":"SYSTEM","actor_id":"company-core","event_type":"TASK_CREATED","entity_type":"Task","entity_id":"task-research-001","summary":"Research task created","metadata":{}},
+    {"event_id":"event-002","timestamp":"2026-09-06T00:00:00Z","actor_type":"SYSTEM","actor_id":"company-core","event_type":"APPROVAL_REQUESTED","entity_type":"Approval","entity_id":"approval-001","summary":"Owner approval requested for CEO decision","metadata":{}}
+  ]
+}
