@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Media Company — Control Room</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div><div class="eyebrow">AI MEDIA COMPANY</div><h1>Company Control Room</h1></div>
+    <div class="system"><span class="dot"></span> SYSTEM ACTIVE <span id="clock"></span></div>
+  </header>
+  <main>
+    <section class="hero">
+      <div><span class="badge">V1 PREVIEW</span><h2>บริษัทกำลังทำงาน</h2><p>ศูนย์ควบคุมสำหรับ Owner เพื่อตรวจสถานะ AI employees, งาน, approval และ content pipeline</p></div>
+      <button id="newTask">+ New Task</button>
+    </section>
+    <section class="stats" id="stats"></section>
+    <section class="grid">
+      <div class="panel wide"><div class="panel-head"><h3>AI Employees</h3><span>10 registered</span></div><div id="agents" class="agents"></div></div>
+      <div class="panel"><div class="panel-head"><h3>Task Queue</h3><span id="taskCount"></span></div><div id="tasks"></div></div>
+      <div class="panel"><div class="panel-head"><h3>Content Pipeline</h3><span>V1</span></div><div class="pipeline" id="pipeline"></div></div>
+      <div class="panel wide"><div class="panel-head"><h3>Company Activity</h3><span>Audit stream</span></div><div id="activity"></div></div>
+    </section>
+  </main>
+  <dialog id="taskDialog"><form method="dialog"><h3>Create Task</h3><label>Title<input id="taskTitle" placeholder="เช่น Research AI trends" /></label><label>Owner<select id="taskOwner"></select></label><label>Priority<select id="taskPriority"><option>NORMAL</option><option>HIGH</option><option>URGENT</option><option>LOW</option></select></label><div class="actions"><button value="cancel">Cancel</button><button id="createTask" value="default">Create</button></div></form></dialog>
+  <script src="app.js"></script>
+</body>
+</html>
