@@ -4,6 +4,7 @@ const path = require('node:path');
 const { loadState, setTaskStatus, createHandoff, TRANSITIONS } = require('../../company-core/task-engine');
 const { advanceTask, PIPELINE } = require('../../company-core/workflow-engine');
 const { runAgent, completeAgentTask, getAgentContract } = require('../../company-core/agent-runtime');
+const { getConfig, isConfigured } = require('../../company-core/llm-client');
 const { approveCeoTask, rejectCeoTask, rejectQaTask } = require('../../company-core/approval-engine');
 
 const PORT = Number(process.env.PORT || 8787);
@@ -20,6 +21,7 @@ function serveWeb(req,res){const pathname=decodeURIComponent(new URL(req.url,`ht
 const server=http.createServer(async(req,res)=>{const url=new URL(req.url,`http://${req.headers.host}`);if(req.method==='OPTIONS')return send(res,204,'','text/plain; charset=utf-8');
 if(req.method==='GET'&&url.pathname==='/api/health')return sendJson(res,200,{ok:true,service:'ai-media-company-api',state:'company-core'});
 if(req.method==='GET'&&url.pathname==='/api/company-state'){try{return sendJson(res,200,readState());}catch(error){return sendJson(res,500,{ok:false,error:error.message});}}
+if(req.method==='GET'&&url.pathname==='/api/llm-status'){try{const config=getConfig();const local=/^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(new URL(config.baseUrl).hostname+new URL(config.baseUrl).port.replace(/^/,':'));return sendJson(res,200,{configured:isConfigured(),provider:local?'LOCAL':'REMOTE',base_url:config.baseUrl,model:config.model||null,api_key_configured:Boolean(config.apiKey),timeout_ms:config.timeoutMs,credentials_source:'environment_variables'});}catch(error){return sendJson(res,500,{ok:false,error:error.message});}}
 if(req.method==='GET'&&url.pathname==='/api/tasks'){try{const state=loadState();return sendJson(res,200,{tasks:state.tasks,transitions:TRANSITIONS});}catch(error){return sendJson(res,500,{ok:false,error:error.message});}}
 if(req.method==='GET'&&url.pathname==='/api/handoffs'){try{return sendJson(res,200,{handoffs:loadState().handoffs||[]});}catch(error){return sendJson(res,500,{ok:false,error:error.message});}}
 if(req.method==='GET'&&url.pathname==='/api/workflow')return sendJson(res,200,{pipeline:PIPELINE});
