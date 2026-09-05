@@ -4,28 +4,58 @@ const path = require('node:path');
 
 const PORT = Number(process.env.PORT || 8787);
 const ROOT = path.resolve(__dirname, '../..');
-const STATE_FILE = path.join(ROOT, 'company-core', 'state.example.json');
+const STATE_FILE = path.join(ROOT, 'company-core', 'state.json');
+const FALLBACK_STATE_FILE = path.join(ROOT, 'company-core', 'state.example.json');
+const WEB_ROOT = path.join(ROOT, 'apps', 'web');
+
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.webp': 'image/webp'
+};
 
 function readState() {
-  return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+  const file = fs.existsSync(STATE_FILE) ? STATE_FILE : FALLBACK_STATE_FILE;
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
-function sendJson(res, status, payload) {
-  const body = JSON.stringify(payload, null, 2);
+function send(res, status, body, type) {
   res.writeHead(status, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Cache-Control': 'no-store'
+    'Content-Type': type,
+    'Cache-Control': 'no-store',
+    'Access-Control-Allow-Origin': '*'
   });
   res.end(body);
 }
 
+function sendJson(res, status, payload) {
+  send(res, status, JSON.stringify(payload, null, 2), 'application/json; charset=utf-8');
+}
+
+function serveWeb(req, res) {
+  const pathname = decodeURIComponent(new URL(req.url, `http://${req.headers.host}`).pathname);
+  const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+  const file = path.resolve(WEB_ROOT, relative);
+  if (!file.startsWith(WEB_ROOT) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+    return send(res, 404, 'Not found', 'text/plain; charset=utf-8');
+  }
+  const ext = path.extname(file).toLowerCase();
+  return send(res, 200, fs.readFileSync(file), MIME[ext] || 'application/octet-stream');
+}
+
 const server = http.createServer((req, res) => {
-  if (req.method === 'GET' && req.url === '/api/health') {
-    return sendJson(res, 200, { ok: true, service: 'ai-media-company-api' });
+  const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (req.method === 'GET' && url.pathname === '/api/health') {
+    return sendJson(res, 200, { ok: true, service: 'ai-media-company-api', state: 'company-core' });
   }
 
-  if (req.method === 'GET' && req.url === '/api/company-state') {
+  if (req.method === 'GET' && url.pathname === '/api/company-state') {
     try {
       return sendJson(res, 200, readState());
     } catch (error) {
@@ -33,9 +63,10 @@ const server = http.createServer((req, res) => {
     }
   }
 
-  sendJson(res, 404, { ok: false, error: 'Not found' });
+  if (req.method === 'GET') return serveWeb(req, res);
+  return sendJson(res, 405, { ok: false, error: 'Method not allowed' });
 });
 
 server.listen(PORT, () => {
-  console.log(`AI Media Company API listening on http://localhost:${PORT}`);
+  console.log(`AI Media Company listening on http://localhost:${PORT}`);
 });
