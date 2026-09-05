@@ -8,18 +8,11 @@ const PIPELINE = [
   { from: 'qa', to: 'producer', taskType: 'production', title: 'วาง production plan' }
 ];
 
-function nextStage(agentId) {
-  return PIPELINE.find((stage) => stage.from === agentId) || null;
-}
+function nextStage(agentId) { return PIPELINE.find((stage) => stage.from === agentId) || null; }
 
 function createNextTask(task, stage, state) {
-  const existing = state.tasks.find((item) =>
-    item.owner_agent_id === stage.to &&
-    item.depends_on.includes(task.task_id) &&
-    !['CANCELLED', 'FAILED'].includes(item.status)
-  );
+  const existing = state.tasks.find((item) => item.owner_agent_id === stage.to && item.depends_on.includes(task.task_id) && !['CANCELLED', 'FAILED'].includes(item.status));
   if (existing) return existing;
-
   const next = {
     task_id: `task-${stage.to}-${Date.now()}`,
     type: stage.taskType,
@@ -28,50 +21,57 @@ function createNextTask(task, stage, state) {
     owner_agent_id: stage.to,
     requester_agent_id: task.owner_agent_id,
     priority: task.priority,
-    status: 'QUEUED',
-    input_refs: task.output_refs.length ? task.output_refs : [task.task_id],
-    output_refs: [],
-    depends_on: [task.task_id],
-    retry_count: 0,
-    max_retries: 3,
-    last_error: null,
-    created_at: new Date().toISOString(),
-    started_at: null,
-    completed_at: null
+    status: 'QUEUED', input_refs: task.output_refs.length ? task.output_refs : [task.task_id], output_refs: [],
+    depends_on: [task.task_id], retry_count: 0, max_retries: 3, last_error: null,
+    created_at: new Date().toISOString(), started_at: null, completed_at: null
   };
-  state.tasks.push(next);
-  return next;
+  state.tasks.push(next); return next;
+}
+
+function createRevisionTask(task, reason, state) {
+  const next = {
+    task_id: `task-writer-revision-${Date.now()}`,
+    type: 'revision', title: 'แก้ไข content ตาม QA feedback',
+    objective: `แก้ไขงาน ${task.task_id} ตามข้อผิดพลาดที่ QA ระบุ`,
+    owner_agent_id: 'writer', requester_agent_id: 'qa', priority: task.priority,
+    status: 'QUEUED', input_refs: task.output_refs.length ? task.output_refs : [task.task_id], output_refs: [],
+    depends_on: [task.task_id], retry_count: 0, max_retries: 3, last_error: null,
+    created_at: new Date().toISOString(), started_at: null, completed_at: null,
+    revision: { source_task_id: task.task_id, reason: reason || 'QA requested revision' }
+  };
+  state.tasks.push(next); return next;
 }
 
 function advanceTask(taskId, options = {}) {
   const state = loadState();
   const task = state.tasks.find((item) => item.task_id === taskId);
   if (!task) throw new Error(`Task not found: ${taskId}`);
-  if (task.status !== 'COMPLETED' && task.status !== 'READY_FOR_QA') {
-    throw new Error(`Task must be COMPLETED or READY_FOR_QA before workflow advance: ${task.status}`);
-  }
-
+  if (task.status !== 'COMPLETED' && task.status !== 'READY_FOR_QA') throw new Error(`Task must be COMPLETED or READY_FOR_QA before workflow advance: ${task.status}`);
   const stage = nextStage(task.owner_agent_id);
   if (!stage) return { state, task, nextTask: null, completed: true };
-
   const nextTask = createNextTask(task, stage, state);
   saveState(state);
-  createHandoff({
-    task_id: task.task_id,
-    from_agent: task.owner_agent_id,
-    to_agent: stage.to,
-    objective: nextTask.objective,
-    input_refs: nextTask.input_refs,
-    evidence_refs: options.evidence_refs || [],
-    source_refs: options.source_refs || [],
-    assumptions: options.assumptions || [],
-    inference: options.inference || [],
-    confidence: options.confidence || 'Medium',
-    recommendation: options.recommendation || null,
-    requested_action: `รับ task ${nextTask.task_id}`
-  });
-
+  createHandoff({ task_id: task.task_id, from_agent: task.owner_agent_id, to_agent: stage.to, objective: nextTask.objective,
+    input_refs: nextTask.input_refs, evidence_refs: options.evidence_refs || [], source_refs: options.source_refs || [],
+    assumptions: options.assumptions || [], inference: options.inference || [], confidence: options.confidence || 'Medium',
+    recommendation: options.recommendation || null, requested_action: `รับ task ${nextTask.task_id}` });
   return { state: loadState(), task, nextTask, completed: false };
 }
 
-module.exports = { PIPELINE, advanceTask, nextStage };
+function requestRevision(taskId, reason = 'QA requested revision') {
+  const state = loadState();
+  const task = state.tasks.find((item) => item.task_id === taskId);
+  if (!task) throw new Error(`Task not found: ${taskId}`);
+  if (task.owner_agent_id !== 'qa') throw new Error('Revision request is only available for QA tasks');
+  if (task.status !== 'IN_PROGRESS') throw new Error(`QA task must be IN_PROGRESS before rejection: ${task.status}`);
+  const blocked = setTaskStatus(taskId, 'BLOCKED');
+  const fresh = loadState();
+  const nextTask = createRevisionTask(task, reason, fresh);
+  saveState(fresh);
+  const handoff = createHandoff({ task_id: task.task_id, from_agent: 'qa', to_agent: 'writer', objective: nextTask.objective,
+    input_refs: nextTask.input_refs, evidence_refs: [], source_refs: [], assumptions: [], inference: [], confidence: 'High',
+    recommendation: reason, requested_action: `แก้ไขและส่งกลับ QA: ${nextTask.task_id}` });
+  return { state: loadState(), task: blocked.task, nextTask, handoff, revision_requested: true };
+}
+
+module.exports = { PIPELINE, advanceTask, nextStage, requestRevision };
