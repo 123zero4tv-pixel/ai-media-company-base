@@ -1,0 +1,14 @@
+{
+  "agents": [
+    {"id":"ceo","name":"CEO AI","department":"executive"},
+    {"id":"research","name":"Research AI","department":"research"},
+    {"id":"idea","name":"Idea AI","department":"creative"},
+    {"id":"writer","name":"Writer AI","department":"writing"},
+    {"id":"producer","name":"Producer AI","department":"production"},
+    {"id":"visual","name":"Visual AI","department":"design"},
+    {"id":"video","name":"Video AI","department":"video"},
+    {"id":"qa","name":"QA AI","department":"quality"},
+    {"id":"publisher","name":"Publisher AI","department":"publishing"},
+    {"id":"analytics","name":"Analytics AI","department":"analytics"}
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "name":"content-pipeline",
+  "states":["research","idea","decision","writing","production","qa","revision","approved","published","analytics","learning"]
+}
