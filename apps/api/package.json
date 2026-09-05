@@ -1,0 +1,12 @@
+{
+  "name": "ai-media-company-api",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI Media Company Company Core API",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
