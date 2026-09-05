@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { buildAgentOutput } = require('./agent-output');
+const { setTaskStatus } = require('./task-engine');
+const { advanceTask } = require('./workflow-engine');
 
 const STATE_PATH = path.join(__dirname, 'state.json');
 const ROLE_INSTRUCTIONS = {
@@ -29,5 +31,35 @@ function runAgent(agentId,taskId,input={}){
   state.audit_log=state.audit_log||[]; state.audit_log.push({audit_id:`audit-${Date.now()}`,event_type:'AGENT_RUNTIME_OUTPUT_CREATED',actor:agentId,entity_type:'Task',entity_id:taskId,created_at:started,details:{role:agentId,execution_mode:'structured_role_output'}});
   saveState(state); return {agent_id:agentId,task_id:taskId,status:task.status,role_instruction:ROLE_INSTRUCTIONS[agentId],output};
 }
+function completeAgentTask(taskId, options={}){
+  const state=loadState(); const task=state.tasks?.find(t=>t.task_id===taskId);
+  if(!task)throw new Error(`Unknown task: ${taskId}`);
+  if(task.status!=='IN_PROGRESS')throw new Error(`Task must be IN_PROGRESS before completion: ${task.status}`);
+  const output=options.output || task.runtime?.output || null;
+  if(!output)throw new Error('Task has no runtime output');
+  task.output_refs=Array.isArray(options.output_refs)?options.output_refs:[taskId+'.output'];
+  task.runtime=task.runtime||{}; task.runtime.output=output; task.runtime.completed_at=now();
+  task.runtime.execution_result={type:'structured_role_output',output};
+  saveState(state);
+
+  const completionStatus=options.ready_for_qa ? 'READY_FOR_QA' : 'COMPLETED';
+  const completed=setTaskStatus(taskId,completionStatus);
+  const currentTask=completed.task;
+
+  if(currentTask.owner_agent_id==='ceo' && !options.approved){
+    const waiting=setTaskStatus(taskId,'WAITING_APPROVAL');
+    return {task:waiting.task,state:waiting.state,nextTask:null,workflow_advanced:false,approval_required:true};
+  }
+
+  const advanced=advanceTask(taskId,{
+    evidence_refs:options.evidence_refs || output.evidence_refs || [],
+    source_refs:options.source_refs || output.source_refs || [],
+    assumptions:options.assumptions || [],
+    inference:options.inference || [],
+    confidence:options.confidence || output.confidence || 'Medium',
+    recommendation:options.recommendation || output.recommendation || null
+  });
+  return {...advanced,workflow_advanced:Boolean(advanced.nextTask),approval_required:false};
+}
 function getAgentContract(agentId){if(!ROLE_INSTRUCTIONS[agentId])throw new Error(`Unknown agent: ${agentId}`);return {agent_id:agentId,role_instruction:ROLE_INSTRUCTIONS[agentId]};}
-module.exports={runAgent,getAgentContract,ROLE_INSTRUCTIONS};
+module.exports={runAgent,completeAgentTask,getAgentContract,ROLE_INSTRUCTIONS};
