@@ -6,11 +6,11 @@ const PIPELINE = [
   { from: 'research', to: 'idea', taskType: 'idea_generation', title: 'สร้างและคัดกรอง content ideas' },
   { from: 'idea', to: 'ceo', taskType: 'decision', title: 'เตรียม CEO decision' },
   { from: 'ceo', to: 'writer', taskType: 'writing', title: 'เขียน script ตาม direction ที่อนุมัติ' },
-  { from: 'writer', to: 'qa', taskType: 'qa', title: 'ตรวจสอบ script ก่อน production' },
-  { from: 'qa', to: 'producer', taskType: 'production', title: 'วาง production plan' },
+  { from: 'writer', to: 'producer', taskType: 'production', title: 'วาง production plan จาก script' },
   { from: 'producer', to: 'visual', taskType: 'visual_assets', title: 'สร้างและเตรียม visual assets' },
   { from: 'visual', to: 'video', taskType: 'video_creation', title: 'สร้างและประกอบวิดีโอ' },
-  { from: 'video', to: 'publisher', taskType: 'publishing', title: 'เตรียม metadata และเผยแพร่' },
+  { from: 'video', to: 'qa', taskType: 'qa', title: 'ตรวจสอบ content ก่อนเผยแพร่' },
+  { from: 'qa', to: 'publisher', taskType: 'publishing', title: 'เตรียม metadata และเผยแพร่' },
   { from: 'publisher', to: 'analytics', taskType: 'analytics', title: 'วิเคราะห์ผลและสรุป learning' }
 ];
 
