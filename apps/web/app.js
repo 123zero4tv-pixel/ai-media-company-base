@@ -3,6 +3,7 @@ const agentConfig = [
   ['writer','Writer AI','Scripts & Copy'], ['producer','Producer AI','Production Planning'], ['visual','Visual AI','Visual Assets'],
   ['video','Video AI','Video Assembly'], ['qa','QA AI','Quality & Risk'], ['publisher','Publisher AI','Publishing'], ['analytics','Analytics AI','Performance & Learning']
 ];
+const API_BASE_URL = 'https://ai-media-company-api.onrender.com';
 let companyState = null, agents = [], tasks = [], handoffs = [];
 const statusText = {WORKING:'WORKING',WAITING_APPROVAL:'WAITING',READY:'READY',IDLE:'IDLE',BLOCKED:'BLOCKED',ERROR:'ERROR',OFFLINE:'OFFLINE'};
 const roleColor = s => ['WAITING_APPROVAL','BLOCKED','ERROR'].includes(s) ? 'wait' : ['WORKING','ASSIGNED'].includes(s) ? 'busy' : '';
@@ -15,8 +16,8 @@ function normalizeState(state){
 function agentMarkup(a){return `<div class="room ${a.id}" data-agent="${a.id}"><div class="room-label">${a.name.replace(' AI','')}</div><div class="room-sub">${a.role}</div><div class="status-dot ${roleColor(a.status)}"></div><div class="desk"></div><div class="monitor"></div><div class="chair"></div><div class="agent" data-agent="${a.id}"><div class="head"><div class="hair"></div></div><div class="body"></div><div class="leg l"></div><div class="leg r"></div><div class="bubble">${a.bubble}</div></div></div>`;}
 function renderRooms(){document.querySelector('#rooms').innerHTML=agents.map(agentMarkup).join('')+`<div class="room lounge"><div class="room-label">LOUNGE</div><div class="room-sub">break / team sync</div></div>`;document.querySelectorAll('[data-agent]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();openAgent(el.dataset.agent);}));}
 
-async function apiGet(path){const r=await fetch(path,{cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`HTTP ${r.status}`);return data;}
-async function apiPost(path, body={}){const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`HTTP ${r.status}`);return data;}
+async function apiGet(path){const r=await fetch(`${API_BASE_URL}${path}`,{cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`HTTP ${r.status}`);return data;}
+async function apiPost(path, body={}){const r=await fetch(`${API_BASE_URL}${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`HTTP ${r.status}`);return data;}
 async function refreshAfterAction(message){showToast(message);await loadCompanyState();}
 
 function taskControls(task){
