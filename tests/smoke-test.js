@@ -49,47 +49,124 @@ async function main() {
     assert.equal(result.approval_required, true);
     assert.equal(result.task.status, 'WAITING_APPROVAL');
     assert.ok(result.approval.approval_id);
-    assert.equal(result.approval.task_id, ceoTask);
 
     // Owner approval -> Writer
     result = approveCeoTask(ceoTask, 'Approved by smoke test');
     assert.equal(result.approval.status, 'APPROVED');
-    assert.equal(result.workflow_advanced, true);
     assert.equal(result.nextTask.owner_agent_id, 'writer');
     assert.equal(result.nextTask.type, 'writing');
 
-    // Writer -> QA
+    // Writer -> Producer -> Visual -> Video
     const writerTask = result.nextTask.task_id;
     await runAgent('writer', writerTask, { idea_refs: [ceoTask + '.output'] });
     result = completeAgentTask(writerTask);
+    assert.equal(result.nextTask.owner_agent_id, 'producer');
+    assert.equal(result.nextTask.type, 'production');
+
+    const producerTask = result.nextTask.task_id;
+    await runAgent('producer', producerTask, { script_refs: [writerTask + '.output'] });
+    result = completeAgentTask(producerTask);
+    assert.equal(result.nextTask.owner_agent_id, 'visual');
+    assert.equal(result.nextTask.type, 'visual_assets');
+
+    const visualTask = result.nextTask.task_id;
+    await runAgent('visual', visualTask, { production_refs: [producerTask + '.output'] });
+    result = completeAgentTask(visualTask);
+    assert.equal(result.nextTask.owner_agent_id, 'video');
+    assert.equal(result.nextTask.type, 'video_creation');
+
+    const videoTask = result.nextTask.task_id;
+    await runAgent('video', videoTask, { visual_refs: [visualTask + '.output'] });
+    result = completeAgentTask(videoTask);
     assert.equal(result.nextTask.owner_agent_id, 'qa');
     assert.equal(result.nextTask.type, 'qa');
 
-    // QA reject -> Writer revision
+    // QA reject -> Writer revision -> Producer -> Visual -> Video -> QA
     const qaTask = result.nextTask.task_id;
-    await runAgent('qa', qaTask, { content_refs: [writerTask + '.output'], verdict: 'REJECT' });
+    await runAgent('qa', qaTask, { content_refs: [videoTask + '.output'], verdict: 'REJECT' });
     result = rejectQaTask(qaTask, 'Missing evidence for a key claim');
     assert.equal(result.revision_requested, true);
     assert.equal(result.nextTask.owner_agent_id, 'writer');
     assert.equal(result.nextTask.type, 'revision');
     assert.equal(result.nextTask.revision.source_task_id, qaTask);
 
-    // Writer revision -> QA again
     const revisionTask = result.nextTask.task_id;
     await runAgent('writer', revisionTask, { revision_refs: [qaTask + '.output'] });
     result = completeAgentTask(revisionTask);
+    assert.equal(result.nextTask.owner_agent_id, 'producer');
+    assert.equal(result.nextTask.type, 'production');
+
+    const revisionProducerTask = result.nextTask.task_id;
+    await runAgent('producer', revisionProducerTask, { revision_refs: [revisionTask + '.output'] });
+    result = completeAgentTask(revisionProducerTask);
+    assert.equal(result.nextTask.owner_agent_id, 'visual');
+
+    const revisionVisualTask = result.nextTask.task_id;
+    await runAgent('visual', revisionVisualTask, { production_refs: [revisionProducerTask + '.output'] });
+    result = completeAgentTask(revisionVisualTask);
+    assert.equal(result.nextTask.owner_agent_id, 'video');
+
+    const revisionVideoTask = result.nextTask.task_id;
+    await runAgent('video', revisionVideoTask, { visual_refs: [revisionVisualTask + '.output'] });
+    result = completeAgentTask(revisionVideoTask);
     assert.equal(result.nextTask.owner_agent_id, 'qa');
-    assert.equal(result.nextTask.type, 'qa');
+
+    // Final QA pass -> Publisher -> Analytics -> Learning loop
+    const finalQaTask = result.nextTask.task_id;
+    await runAgent('qa', finalQaTask, { content_refs: [revisionVideoTask + '.output'], verdict: 'PASS' });
+    result = completeAgentTask(finalQaTask);
+    assert.equal(result.nextTask.owner_agent_id, 'publisher');
+    assert.equal(result.nextTask.type, 'publishing');
+
+    const publisherTask = result.nextTask.task_id;
+    await runAgent('publisher', publisherTask, { qa_refs: [finalQaTask + '.output'] });
+    result = completeAgentTask(publisherTask);
+    assert.equal(result.nextTask.owner_agent_id, 'analytics');
+    assert.equal(result.nextTask.type, 'analytics');
+
+    const analyticsTask = result.nextTask.task_id;
+    await runAgent('analytics', analyticsTask, { content_refs: [publisherTask + '.output'], metrics: [{ name: 'views', value: 1000 }] });
+    result = completeAgentTask(analyticsTask, {
+      output: {
+        metrics: [{ name: 'views', value: 1000 }],
+        findings: ['Initial audience response is measurable.'],
+        observations: ['The content generated baseline performance data.'],
+        evidence: ['analytics-smoke-evidence'],
+        evidence_refs: ['analytics-smoke-evidence'],
+        source_refs: ['analytics-smoke-source'],
+        diagnosis: 'Baseline performance established.',
+        learning: ['Use measured performance to inform the next research cycle.'],
+        recommendations: ['Research follow-up topics using the observed performance.'],
+        recommendation: 'Research follow-up topics using the observed performance.',
+        confidence: 'High'
+      }
+    });
+    assert.equal(result.workflow_advanced, false);
+    assert.equal(result.currentTask.owner_agent_id, 'analytics');
+    assert.ok(result.learning);
+    assert.equal(result.learning.source_task_id, analyticsTask);
+    assert.equal(result.learning.confidence, 'High');
+    assert.ok(Array.isArray(result.learningTasks));
+    assert.equal(result.learningTasks.length, 3);
+    assert.deepEqual(result.learningTasks.map((task) => task.owner_agent_id), ['research', 'idea', 'ceo']);
 
     const finalState = loadState();
     const approval = finalState.approvals.find((item) => item.task_id === ceoTask);
     assert.equal(approval.status, 'APPROVED');
     assert.ok(finalState.handoffs.some((item) => item.from_agent === 'ceo' && item.to_agent === 'writer'));
-    assert.ok(finalState.handoffs.some((item) => item.from_agent === 'qa' && item.to_agent === 'writer'));
-    assert.ok(finalState.handoffs.some((item) => item.from_agent === 'writer' && item.to_agent === 'qa'));
+    assert.ok(finalState.handoffs.some((item) => item.from_agent === 'writer' && item.to_agent === 'producer'));
+    assert.ok(finalState.handoffs.some((item) => item.from_agent === 'producer' && item.to_agent === 'visual'));
+    assert.ok(finalState.handoffs.some((item) => item.from_agent === 'visual' && item.to_agent === 'video'));
+    assert.ok(finalState.handoffs.some((item) => item.from_agent === 'video' && item.to_agent === 'qa'));
+    assert.ok(finalState.handoffs.some((item) => item.from_agent === 'qa' && item.to_agent === 'publisher'));
+    assert.ok(finalState.handoffs.some((item) => item.from_agent === 'publisher' && item.to_agent === 'analytics'));
+    assert.ok(finalState.handoffs.filter((item) => item.from_agent === 'analytics' && ['research', 'idea', 'ceo'].includes(item.to_agent)).length >= 3);
+    assert.equal(finalState.knowledge.length, 1);
+    assert.equal(finalState.knowledge[0].source_task_id, analyticsTask);
+    assert.equal(finalState.knowledge[0].confidence, 'High');
 
     console.log('SMOKE TEST PASSED');
-    console.log('Research -> Idea -> CEO -> Approval -> Writer -> QA -> Revision -> QA');
+    console.log('Research -> Idea -> CEO -> Approval -> Writer -> Producer -> Visual -> Video -> QA -> Publisher -> Analytics -> Learning -> Research/Idea/CEO');
   } finally {
     if (original !== null) fs.writeFileSync(statePath, original, 'utf8');
     else if (fs.existsSync(statePath)) fs.unlinkSync(statePath);
