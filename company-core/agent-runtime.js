@@ -4,6 +4,7 @@ const { buildAgentOutput } = require('./agent-output');
 const { generateAgentOutput } = require('./llm-client');
 const { setTaskStatus } = require('./task-engine');
 const { advanceTask } = require('./workflow-engine');
+const { recordLearning, createLearningTasks } = require('./learning-engine');
 
 const STATE_PATH = path.join(__dirname, 'state.json');
 const ROLE_INSTRUCTIONS = {
@@ -16,7 +17,7 @@ const ROLE_INSTRUCTIONS = {
   video: 'Turn production inputs into a video assembly plan including scenes, subtitles, voice, music, and formats.',
   qa: 'Review facts, evidence, grammar, copyright risk, brand consistency, quality, and platform requirements. Reject when necessary.',
   publisher: 'Prepare publishing metadata, scheduling information, platform variants, and publication status.',
-  analytics: 'Analyze content performance, diagnose results, and return evidence-based learning to research, idea, and CEO.'
+  analytics: 'Analyze content performance, diagnose results, and return evidence-based learning to research, idea, and CEO. Return metrics, findings, learning, recommendation, confidence, evidence_refs, and source_refs when available.'
 };
 function loadState(){return JSON.parse(fs.readFileSync(STATE_PATH,'utf8'));}
 function saveState(state){fs.writeFileSync(STATE_PATH,JSON.stringify(state,null,2)+'\n','utf8');}
@@ -48,6 +49,20 @@ function ensureOwnerApproval(task, output){
   state.audit_log=state.audit_log||[]; state.audit_log.push({event_id:`event-${Date.now()}-${state.audit_log.length+1}`,timestamp:now(),actor_type:'SYSTEM',actor_id:'agent-runtime',event_type:'APPROVAL_REQUESTED',entity_type:'Approval',entity_id:approvalId,summary:`Owner approval requested for ${task.task_id}`,metadata:{task_id:task.task_id,decision_id:decisionId}});
   saveState(state); return {state,approval};
 }
+function createAnalyticsLearning(task, output){
+  if(task.owner_agent_id!=='analytics') return null;
+  const learning=recordLearning({
+    analyticsTaskId:task.task_id,
+    metrics:output.metrics||[],
+    observations:output.findings||output.observations||output.learning||[],
+    recommendations:output.recommendations|| (output.recommendation ? [output.recommendation] : []),
+    confidence:output.confidence||'Medium',
+    evidence_refs:output.evidence_refs||[],
+    source_refs:output.source_refs||[]
+  });
+  const followUp=createLearningTasks(learning.learning_id,task.priority||'NORMAL');
+  return {learning,learning_tasks:followUp.tasks};
+}
 function completeAgentTask(taskId, options={}){
   const state=loadState(); const task=state.tasks?.find(t=>t.task_id===taskId);
   if(!task)throw new Error(`Unknown task: ${taskId}`); if(task.status!=='IN_PROGRESS')throw new Error(`Task must be IN_PROGRESS before completion: ${task.status}`);
@@ -55,8 +70,9 @@ function completeAgentTask(taskId, options={}){
   task.output_refs=Array.isArray(options.output_refs)?options.output_refs:[taskId+'.output']; task.runtime=task.runtime||{}; task.runtime.output=output; task.runtime.completed_at=now(); task.runtime.execution_result={type:task.runtime.mode||'structured_role_output',output}; saveState(state);
   if(task.owner_agent_id==='ceo' && !options.approved){const waiting=setTaskStatus(taskId,'WAITING_APPROVAL');const approval=ensureOwnerApproval(task,output).approval;return {task:waiting.task,state:loadState(),nextTask:null,workflow_advanced:false,approval_required:true,approval};}
   const completionStatus=options.ready_for_qa ? 'READY_FOR_QA' : 'COMPLETED'; const completed=setTaskStatus(taskId,completionStatus); const currentTask=completed.task;
+  const learningResult=createAnalyticsLearning(currentTask,output);
   const advanced=advanceTask(taskId,{evidence_refs:options.evidence_refs||output.evidence_refs||[],source_refs:options.source_refs||output.source_refs||[],assumptions:options.assumptions||[],inference:options.inference||[],confidence:options.confidence||output.confidence||'Medium',recommendation:options.recommendation||output.recommendation||null});
-  return {...advanced,workflow_advanced:Boolean(advanced.nextTask),approval_required:false,currentTask};
+  return {...advanced,workflow_advanced:Boolean(advanced.nextTask),approval_required:false,currentTask,learning:learningResult?.learning||null,learning_tasks:learningResult?.learning_tasks||[]};
 }
 function getAgentContract(agentId){if(!ROLE_INSTRUCTIONS[agentId])throw new Error(`Unknown agent: ${agentId}`);return {agent_id:agentId,role_instruction:ROLE_INSTRUCTIONS[agentId]};}
 module.exports={runAgent,completeAgentTask,getAgentContract,ROLE_INSTRUCTIONS};
