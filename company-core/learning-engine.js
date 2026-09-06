@@ -65,7 +65,7 @@ function createLearningTasks(learningId, priority = 'NORMAL') {
   state.tasks.push(...tasks);
   saveState(state);
   tasks.forEach((task) => createHandoff({
-    task_id: learningId,
+    task_id: learning.source_task_id || learningId,
     from_agent: 'analytics',
     to_agent: task.owner_agent_id,
     objective: task.objective,
