@@ -1,0 +1,11 @@
+{
+  "name": "ai-media-company",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "start": "node apps/api/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
