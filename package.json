@@ -3,7 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "start": "node apps/api/server.js"
+    "start": "node apps/api/server.js",
+    "test": "node tests/smoke-test.js"
   },
   "engines": {
     "node": ">=20"
